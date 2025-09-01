@@ -16,13 +16,13 @@ set -euo pipefail
 # ---------------------
 # Configuration
 # ---------------------
-CROP_X=100
-CROP_Y=200
-CROP_WIDTH=800
-CROP_HEIGHT=400
+CROP_X=498
+CROP_Y=1117
+CROP_WIDTH=2126
+CROP_HEIGHT=176
 SEARCH_TERMS=("抄底" "卖出")
-SCREENSHOT_DIR="/Users/tony3/Documents/moomoo/screenshot"
-LOG_FILE="/Users/tony3/Documents/moomoo/screenshot/ocr_log.txt"
+SCREENSHOT_DIR="/Users/tony3/Documents/moomoo/screenshots"
+LOG_FILE="/Users/tony3/Documents/moomoo/screenshots/ocr_log.txt"
 
 # Twilio configuration (fill these in)
 TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -32,8 +32,8 @@ TWILIO_TO="+1YYYYYYYYYY"    # recipient number in E.164
 
 # Path to helper scripts (assume same directory)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PY_HSV_SCRIPT="${SCRIPT_DIR}/ocr_color_extract.py"
-PY_SMS_SCRIPT="${SCRIPT_DIR}/send_sms_twilio.py"
+PY_HSV_SCRIPT="${SCRIPT_DIR}/helper_scripts/ocr_color_extract.py"
+PY_SMS_SCRIPT="${SCRIPT_DIR}/helper_scripts/send_sms_twilio.py"
 
 # Ensure helper scripts exist
 if [ ! -x "$PY_HSV_SCRIPT" ]; then
