@@ -26,7 +26,8 @@ CROP_WIDTH=200     # Width of capture area in pixels
 CROP_HEIGHT=180     # Height of capture area in pixels
 
 # Chinese terms to search for in the OCR results
-SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
+# SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
+SEARCH_TERMS=("卖出")  # Term means "sell"
 
 # Directories and files for storing screenshots and logs
 SCREENSHOT_DIR="/Users/tony3/Documents/moomoo/screenshots"
@@ -125,13 +126,15 @@ FOUND_TERMS=()            # Will store unique matched terms
 SUCCESSFUL_METHODS=()     # Will store which preprocessing methods found which terms
 
 # Verify tesseract is available and chi_sim language is installed
+# (Temporarily disabled: OCR/tesseract commented out to add image-matching instead)
+: '
 if ! command -v tesseract >/dev/null 2>&1; then
     echo "$(date): ERROR - tesseract not found in PATH" >> "$LOG_FILE"
     echo "Install tesseract (brew install tesseract)" >&2
     exit 1
 fi
 
-if ! tesseract --list-langs 2>/dev/null | grep -q 'chi_sim'; then
+if ! tesseract --list-langs 2>/dev/null | grep -q '"'"'chi_sim'"'"'; then
     echo "$(date): ERROR - chi_sim language not found for tesseract" >> "$LOG_FILE"
     echo "Install chi_sim training data (brew install tesseract-lang or get traineddata)" >&2
     # continue; user may still want to run with eng only
@@ -144,8 +147,8 @@ for processed_file in "${PROCESSED_FILES[@]}"; do
         if [ "$processed_file" = "$SCREENSHOT_FILE" ]; then
             method_name="original"
         else
-            method_name=$(basename "$processed_file" | sed 's/.*_\(.*_enhanced\)\.png/\1/')
-            # Make sure method_name has a value, use 'unknown' as fallback
+            method_name=$(basename "$processed_file" | sed '"'"'s/.*_\(.*_enhanced\)\.png/\1/'"'"')
+            # Make sure method_name has a value, use '"'"'unknown'"'"' as fallback
             if [ -z "$method_name" ]; then
                 method_name="unknown"
             fi
@@ -193,48 +196,75 @@ ${OCR_TEXT}"
         if [ ${#method_found_terms[@]} -gt 0 ]; then
             SUCCESSFUL_METHODS+=("$method_name: ${method_found_terms[*]}")
         fi
-
-        # # Clean up the processed file to save space - don't delete the original file
-        # if [ "$processed_file" != "$SCREENSHOT_FILE" ]; then
-        #     rm -f "$processed_file"
-        # fi
     fi
 done
+'
 
-# If any target terms were found
+# Placeholder: OCR disabled — perform template/image matching here instead.
+# echo "$(date): OCR disabled in this run; template/image-matching should be invoked here." >> "$LOG_FILE"
+
+# --- Begin: template/image-matching using helper_scripts/template_match.py ---
+# Threshold for template matching (tune 0.60..0.80)
+TEMPLATE_THRESH=0.72
+
+# Directory containing template images (create and place templates there)
+TEMPLATE_DIR="${SCRIPT_DIR}/templates"
+mkdir -p "$TEMPLATE_DIR"
+
+# For each search term, attempt to find an associated template image.
+for term in "${SEARCH_TERMS[@]}"; do
+    # Map known terms to template filenames (adjust names if you use different files)
+    if [ "$term" = "卖出" ]; then
+        tpl="$TEMPLATE_DIR/sell_template.png"
+    elif [ "$term" = "抄底" ]; then
+        tpl="$TEMPLATE_DIR/bottom_template.png"
+    else
+        # fallback: sanitize term into filename
+        safe_name=$(printf '%s' "$term" | tr -cd '[:alnum:]_')
+        tpl="$TEMPLATE_DIR/${safe_name}.png"
+    fi
+
+    if [ ! -f "$tpl" ]; then
+        echo "$(date): DEBUG - template not found for term '$term' at $tpl" >> "$LOG_FILE"
+        continue
+    fi
+
+    DEBUG_OUT="${SCREENSHOT_DIR}/debug_match_${term}_${TIMESTAMP}.png"
+
+    # Run template matcher; capture output JSON and exit code. allow non-zero temporarily
+    set +e
+    RESULT_JSON=$(python3 "${SCRIPT_DIR}/helper_scripts/template_match.py" "$tpl" "$SCREENSHOT_FILE" --thresh "$TEMPLATE_THRESH" --debug "$DEBUG_OUT" 2>&1)
+    RC=$?
+    set -e
+
+    echo "$(date): DEBUG - template_match output for term '$term': $RESULT_JSON" >> "$LOG_FILE"
+
+    if [ $RC -eq 0 ]; then
+        # Found: add to FOUND_TERMS and record method with score and debug image
+        FOUND_TERMS+=("$term")
+        score=$(printf '%s' "$RESULT_JSON" | python3 -c 'import sys,json; j=json.load(sys.stdin); print(j.get("best",{}).get("score",""))' 2>/dev/null || echo "")
+        SUCCESSFUL_METHODS+=("template_match:${term}:score=${score}:debug=${DEBUG_OUT}")
+        echo "$(date): TEMPLATE MATCH found for '${term}' (score=${score}) in $SCREENSHOT_FILE; debug image: $DEBUG_OUT" >> "$LOG_FILE"
+    else
+        echo "$(date): TEMPLATE MATCH NOT found for '${term}' (RC=${RC})" >> "$LOG_FILE"
+    fi
+done
+# --- End: template/image-matching ---
+
+# Original end-of-script logic (kept but adjusted) - use FOUND_TERMS if template matcher updates it
 if [ ${#FOUND_TERMS[@]} -gt 0 ]; then
-    # Create comma-separated list of found terms
     FOUND_LIST=$(IFS=', '; echo "${FOUND_TERMS[*]}")
-    # Create semicolon-separated list of successful methods and what they found
     SUCCESSFUL_LIST=$(IFS='; '; echo "${SUCCESSFUL_METHODS[*]}")
 
-    # Log the findings
     {
         echo "$(date): FOUND Chinese characters: $FOUND_LIST in screenshot $SCREENSHOT_FILE"
         echo "Successful methods: $SUCCESSFUL_LIST"
         echo -e "All OCR Text: $ALL_OCR_TEXT"
         echo "---"
     } >> "$LOG_FILE"
-
-    # # Build SMS message (keeping it concise due to SMS character limits)
-    # SMS_BODY="OCR Alert: found [$FOUND_LIST] - methods: $SUCCESSFUL_LIST. Image: $SCREENSHOT_FILE"
-
-    # # Escape quotes in SMS message to prevent command injection
-    # ESCAPED_BODY=$(printf '%s' "$SMS_BODY" | sed 's/"/\\"/g')
-    
-    # # Send SMS via Twilio using Python helper script
-    # python3 "$PY_SMS_SCRIPT" "$TWILIO_ACCOUNT_SID" "$TWILIO_AUTH_TOKEN" "$TWILIO_FROM" "$TWILIO_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
-    #     echo "$(date): ERROR - Failed to send SMS via Twilio" >> "$LOG_FILE"
-    # }
-
-    # # Display a macOS notification
-    # osascript -e "display notification \"Found Chinese characters: $FOUND_LIST\" with title \"OCR Alert - SMS Sent\""
-
-    # # Log SMS attempt
-    # echo "$(date): SMS attempted to $TWILIO_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
 else
-    # Log that no matches were found
-    echo "$(date): No target Chinese characters found in $SCREENSHOT_FILE (dark background processing)" >> "$LOG_FILE"
+    # Log that no matches were found (or OCR disabled)
+    echo "$(date): No target Chinese characters found in $SCREENSHOT_FILE (OCR disabled / image-match pending)" >> "$LOG_FILE"
     echo -e "All OCR Text: $ALL_OCR_TEXT" >> "$LOG_FILE"
     echo "---" >> "$LOG_FILE"
 fi
