@@ -87,33 +87,26 @@ preprocess_colored_on_black() {
     local green_enhanced="${dir_name}/${base_name}_green_enhanced.png"
     local hsv_enhanced="${dir_name}/${base_name}_hsv_enhanced.png"
     local luma_enhanced="${dir_name}/${base_name}_luma_enhanced.png"
-    local sharp_enhanced="${dir_name}/${base_name}_sharp_enhanced.png"
-    local clahe_enhanced="${dir_name}/${base_name}_clahe_enhanced.png"
     
-    # Increase resize to 500% and add sharpening/denoising to help tiny Chinese strokes
-    magick "$input_file" -resize 500% -normalize -contrast-stretch 5%x95% -threshold 25% \
-        -unsharp 0x1 -morphology close diamond:1 "$red_enhanced"
+    # 1. Extract and enhance red channel (good for red text on dark background)
+    magick "$input_file" -resize 300% -normalize -contrast-stretch 5%x95% -threshold 25% \
+        -morphology close diamond:1 "$red_enhanced"
     
-    magick "$input_file" -channel green -separate -resize 500% \
-        -normalize -contrast-stretch 5%x95% -threshold 25% \
-        -unsharp 0x1 -morphology close diamond:1 "$green_enhanced"
+    # 2. Extract and enhance green channel (good for green text on dark background)
+    magick "$input_file" -channel green -separate +channel \
+        -resize 300% -normalize -contrast-stretch 5%x95% -threshold 25% \
+        -morphology close diamond:1 "$green_enhanced"
     
-    # HSV-based extractor (existing Python helper)
+    # 3. Use Python script for HSV-based color extraction (targeting specific hue ranges)
     python3 "$PY_HSV_SCRIPT" "$input_file" "$hsv_enhanced"
     
+    # 4. Enhance luma (brightness) for better OCR of light text on dark background
     magick "$input_file" -colorspace HSL -channel lightness -separate \
-        -resize 500% -normalize -contrast-stretch 15%x85% \
-        -unsharp 0x1 -threshold 25% -morphology close diamond:1 "$luma_enhanced"
+        -resize 300% -normalize -contrast-stretch 15%x85% \
+        -threshold 25% -morphology close diamond:1 "$luma_enhanced"
     
-    # Additional sharpened variant (helps with broken strokes)
-    magick "$input_file" -resize 500% -colorspace Gray -normalize \
-        -sigmoidal-contrast 4,50% -unsharp 0x1 -morphology close diamond:1 "$sharp_enhanced"
-    
-    # CLAHE (local contrast) variant to bring out faint strokes (if your ImageMagick supports -clahe)
-    magick "$input_file" -resize 500% -colorspace Gray -clahe 240x240+10% -unsharp 0x1 "$clahe_enhanced"
-    
-    # Return space-separated list of processed files (original first)
-    echo "$input_file $red_enhanced $green_enhanced $hsv_enhanced $luma_enhanced $sharp_enhanced $clahe_enhanced"
+    # Return space-separated list of processed files
+    echo "$red_enhanced $green_enhanced $hsv_enhanced $luma_enhanced"
 }
 
 # Call preprocessing function and store the space-separated file list into array
@@ -121,61 +114,18 @@ IFS=' ' read -r -a PROCESSED_FILES <<< "$(preprocess_colored_on_black "$SCREENSH
 
 # Variables to collect OCR results
 ALL_OCR_TEXT=""           # Will store all OCR text from all methods
-FOUND_TERMS=()            # Will store unique matched terms
+FOUND_TERMS=()            # Will store unique matched terms - initialize empty array
 SUCCESSFUL_METHODS=()     # Will store which preprocessing methods found which terms
-
-# Verify tesseract is available and chi_sim language is installed
-if ! command -v tesseract >/dev/null 2>&1; then
-    echo "$(date): ERROR - tesseract not found in PATH" >> "$LOG_FILE"
-    echo "Install tesseract (brew install tesseract)" >&2
-    exit 1
-fi
-
-if ! tesseract --list-langs 2>/dev/null | grep -q 'chi_sim'; then
-    echo "$(date): ERROR - chi_sim language not found for tesseract" >> "$LOG_FILE"
-    echo "Install chi_sim training data (brew install tesseract-lang or get traineddata)" >&2
-    # continue; user may still want to run with eng only
-fi
 
 # Run OCR on each processed image
 for processed_file in "${PROCESSED_FILES[@]}"; do
     if [ -f "$processed_file" ]; then
-        # Extract method name from filename for logging
-        if [ "$processed_file" = "$SCREENSHOT_FILE" ]; then
-            method_name="original"
-        else
-            method_name=$(basename "$processed_file" | sed 's/.*_\(.*_enhanced\)\.png/\1/')
-            # Make sure method_name has a value, use 'unknown' as fallback
-            if [ -z "$method_name" ]; then
-                method_name="unknown"
-            fi
-        fi
-        
         # Run Tesseract OCR with Chinese Simplified and English language support
-        # Do NOT use unicode Chinese whitelist (it can make Tesseract return empty results).
-        # Capture stderr to a temp file for debugging.
-        OCR_TMP_BASE=$(mktemp /tmp/ocr_tmp.XXXX)
-        # tesseract writes output to <base>.txt
-        tesseract "$processed_file" "$OCR_TMP_BASE" -l chi_sim+eng --psm 7 --oem 1 -c preserve_interword_spaces=1 >/dev/null 2>"${OCR_TMP_BASE}.err" || true
-        OCR_TEXT=$(cat "${OCR_TMP_BASE}.txt" 2>/dev/null || true)
-
-        # If output empty, log stderr for debugging
-        if [ -z "$OCR_TEXT" ]; then
-            echo "$(date): DEBUG - tesseract produced no text for ${processed_file}. Stderr:" >> "$LOG_FILE"
-            if [ -s "${OCR_TMP_BASE}.err" ]; then
-                sed 's/^/    /' "${OCR_TMP_BASE}.err" >> "$LOG_FILE"
-            else
-                echo "    (no stderr captured)" >> "$LOG_FILE"
-            fi
-        fi
-
-        # cleanup temp files
-        rm -f "${OCR_TMP_BASE}.txt" "${OCR_TMP_BASE}.err" || true
-
-        # Append to ALL_OCR_TEXT with proper formatting
-        ALL_OCR_TEXT="${ALL_OCR_TEXT}
---- Method: ${method_name} ---
-${OCR_TEXT}"
+        OCR_TEXT=$(tesseract "$processed_file" stdout -l chi_sim+eng --psm 6 -c preserve_interword_spaces=1 2>/dev/null || true)
+        
+        # Extract method name from filename for logging
+        method_name=$(basename "$processed_file" | sed 's/.*_\([^.]*\)\.png/\1/')
+        ALL_OCR_TEXT="$ALL_OCR_TEXT\n--- Method: $method_name ---\n$OCR_TEXT"
 
         # Check each search term against OCR text
         method_found_terms=()
@@ -183,7 +133,7 @@ ${OCR_TEXT}"
             if echo "$OCR_TEXT" | grep -q "$term"; then
                 method_found_terms+=("$term")  # This method found this term
                 # Only add to FOUND_TERMS if not already there
-                if [[ ! " ${FOUND_TERMS[@]} " =~ " ${term} " ]]; then
+                if [ ${#FOUND_TERMS[@]} -eq 0 ] || [[ ! " ${FOUND_TERMS[*]} " =~ " ${term} " ]]; then
                     FOUND_TERMS+=("$term")
                 fi
             fi

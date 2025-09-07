@@ -1,0 +1,59 @@
+Sat Sep  6 21:01:13 CDT 2025: DEBUG - tesseract produced no text for /Users/tony3/Documents/moomoo/screenshots/crop_20250906_210109_red_enhanced.png. Stderr:
+    libpng warning: iCCP: profile 'icc': 'RGB ': RGB color space not permitted on grayscale PNG
+    Bottom=0, top=1800, base=0, x=0
+    
+    Total count=0
+    Min=0.00 Really=0
+    Lower quartile=0.00
+    Median=0.00, ile(0.5)=0.00
+    Upper quartile=0.00
+    Max=0.00 Really=0
+    Range=1
+    Mean= 0.00
+    SD= 0.00
+Sat Sep  6 21:01:13 CDT 2025: DEBUG - tesseract produced no text for /Users/tony3/Documents/moomoo/screenshots/crop_20250906_210109_hsv_enhanced.png. Stderr:
+    (no stderr captured)
+Sat Sep  6 21:01:14 CDT 2025: DEBUG - tesseract produced no text for /Users/tony3/Documents/moomoo/screenshots/crop_20250906_210109_clahe_enhanced.png. Stderr:
+    (no stderr captured)
+Sat Sep  6 21:01:14 CDT 2025: No target Chinese characters found in /Users/tony3/Documents/moomoo/screenshots/crop_20250906_210109.png (dark background processing)
+All OCR Text: 
+--- Method: original ---
+12 i= LINE15: Lil
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+. .  |
+--- Method: hsv_enhanced ---
+
+--- Method: luma_enhanced ---
+ ; : |
+--- Method: sharp_enhanced ---
+12 | 四 LINE15: LI!
+--- Method: clahe_enhanced ---
+
+---
+Sat Sep  6 21:56:59 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250906_215657.png
+Successful methods: enhanced: 抄底;enhanced: 抄底
+All OCR Text: 
+--- Method: enhanced ---
+
+--- Method: enhanced ---
+sal il
+wales
+
+12 LINE13: LINE14 LINE15: LI
+@  e, @
+--- Method: enhanced ---
+ll      all
+抄底
+12: LINE13: LINE14:
+® ee
+re 6b ok A A AAA
+ee ee 6s tk
+--- Method: enhanced ---
+加| | | 站| | [站生生
+抄底
+
+2: LINE13: LINE14: LINE15: LI
+@  @ @
+---
