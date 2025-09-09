@@ -22,11 +22,12 @@ set -euo pipefail
 # Screen coordinates for capturing a specific area of the screen
 CROP_X=1150          # X position (from left) to start capture
 CROP_Y=640         # Y position (from top) to start capture 
-CROP_WIDTH=200     # Width of capture area in pixels
-CROP_HEIGHT=180     # Height of capture area in pixels
+CROP_WIDTH=250     # Width of capture area in pixels
+CROP_HEIGHT=160     # Height of capture area in pixels
 
 # Chinese terms to search for in the OCR results
 SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
+# SEARCH_TERMS=("卖出") 
 
 # Directories and files for storing screenshots and logs
 SCREENSHOT_DIR="/Users/tony3/Documents/moomoo/screenshots"
@@ -124,7 +125,7 @@ for processed_file in "${PROCESSED_FILES[@]}"; do
         OCR_TEXT=$(tesseract "$processed_file" stdout -l chi_sim+eng --psm 6 -c preserve_interword_spaces=1 2>/dev/null || true)
         
         # Extract method name from filename for logging
-        method_name=$(basename "$processed_file" | sed 's/.*_\([^.]*\)\.png/\1/')
+        method_name=$(basename "$processed_file" | sed 's/.*_\([^_]*_[^.]*\)\.png/\1/')
         ALL_OCR_TEXT="$ALL_OCR_TEXT\n--- Method: $method_name ---\n$OCR_TEXT"
 
         # Check each search term against OCR text
