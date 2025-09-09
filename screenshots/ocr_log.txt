@@ -57,3 +57,33 @@ ee ee 6s tk
 2: LINE13: LINE14: LINE15: LI
 @  @ @
 ---
+Mon Sep  8 20:21:57 CDT 2025: FOUND Chinese characters: 卖出 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250908_202143.png
+Successful methods: hsv_enhanced: 卖出
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+卖出
+12:
+UNE13:
+LINE14:
+--- Method: luma_enhanced ---
+
+---
+Mon Sep  8 20:24:48 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250908_202435.png
+Successful methods: hsv_enhanced: 抄底
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+抄底
+12:
+UNE13:
+UNE14:
+--- Method: luma_enhanced ---
+
+---

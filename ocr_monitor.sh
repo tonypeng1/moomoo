@@ -47,6 +47,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY_HSV_SCRIPT="${SCRIPT_DIR}/helper_scripts/ocr_color_extract.py"  # For HSV color processing
 PY_SMS_SCRIPT="${SCRIPT_DIR}/helper_scripts/send_sms_twilio.py"    # For sending SMS
 
+# Path to EasyOCR helper script
+PY_EASYOCR_SCRIPT="${SCRIPT_DIR}/helper_scripts/easyocr_ocr.py"
+
 # Verify that helper scripts exist and are executable
 if [ ! -x "$PY_HSV_SCRIPT" ]; then
     echo "$(date): ERROR - Python HSV script not found or not executable at $PY_HSV_SCRIPT" >> "$LOG_FILE"
@@ -57,6 +60,12 @@ fi
 if [ ! -f "$PY_SMS_SCRIPT" ]; then
     echo "$(date): ERROR - SMS script not found at $PY_SMS_SCRIPT" >> "$LOG_FILE"
     echo "Make sure $PY_SMS_SCRIPT exists."
+    exit 1
+fi
+
+if [ ! -f "$PY_EASYOCR_SCRIPT" ]; then
+    echo "$(date): ERROR - EasyOCR script not found at $PY_EASYOCR_SCRIPT" >> "$LOG_FILE"
+    echo "Make sure $PY_EASYOCR_SCRIPT exists."
     exit 1
 fi
 
@@ -121,8 +130,8 @@ SUCCESSFUL_METHODS=()     # Will store which preprocessing methods found which t
 # Run OCR on each processed image
 for processed_file in "${PROCESSED_FILES[@]}"; do
     if [ -f "$processed_file" ]; then
-        # Run Tesseract OCR with Chinese Simplified and English language support
-        OCR_TEXT=$(tesseract "$processed_file" stdout -l chi_sim+eng --psm 6 -c preserve_interword_spaces=1 2>/dev/null || true)
+        # Run EasyOCR via Python helper script
+        OCR_TEXT=$(python3 "$PY_EASYOCR_SCRIPT" "$processed_file" 2>/dev/null || true)
         
         # Extract method name from filename for logging
         method_name=$(basename "$processed_file" | sed 's/.*_\([^_]*_[^.]*\)\.png/\1/')
@@ -133,22 +142,15 @@ for processed_file in "${PROCESSED_FILES[@]}"; do
         for term in "${SEARCH_TERMS[@]}"; do
             if echo "$OCR_TEXT" | grep -q "$term"; then
                 method_found_terms+=("$term")  # This method found this term
-                # Only add to FOUND_TERMS if not already there
                 if [ ${#FOUND_TERMS[@]} -eq 0 ] || [[ ! " ${FOUND_TERMS[*]} " =~ " ${term} " ]]; then
                     FOUND_TERMS+=("$term")
                 fi
             fi
         done
 
-        # If this method found any terms, record it
         if [ ${#method_found_terms[@]} -gt 0 ]; then
             SUCCESSFUL_METHODS+=("$method_name: ${method_found_terms[*]}")
         fi
-
-        # # Clean up the processed file to save space - don't delete the original file
-        # if [ "$processed_file" != "$SCREENSHOT_FILE" ]; then
-        #     rm -f "$processed_file"
-        # fi
     fi
 done
 
