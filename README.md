@@ -68,7 +68,8 @@ VONAGE_TO="+1YYYYYYYYYY"
 By default, the script monitors a 270×190 pixel area starting at coordinates (1150, 620). To customize this for your screen:
 ```
 CROP_X=1150          # X position (from left)
-CROP_Y=620           # Y position (from top)CROP_WIDTH=270       # Width of capture area in pixels
+CROP_Y=620           # Y position (from top)
+CROP_WIDTH=270       # Width of capture area in pixels
 CROP_HEIGHT=190      # Height of capture area in pixels
 ```
 
