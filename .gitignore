@@ -9,5 +9,5 @@ wheels/
 # Virtual environments
 .venv
 
-# Twilio credentials
+# Twilio and Vonage credentials
 .env

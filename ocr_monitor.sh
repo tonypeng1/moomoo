@@ -40,12 +40,19 @@ LOG_FILE="/Users/tony3/Documents/moomoo/screenshots/ocr_log.txt"
 # TWILIO_FROM="+1XXXXXXXXXX"  # your Twilio phone number
 # TWILIO_TO="+1YYYYYYYYYY"    # recipient phone number
 
+# Vonage (Nexmo) API credentials and numbers
+# VONAGE_API_KEY="your_api_key_here"
+# VONAGE_API_SECRET="your_api_secret_here"
+# VONAGE_FROM="YourSender"    # sender ID (alphanumeric or number depending on region)
+# VONAGE_TO="+1YYYYYYYYYY"    # recipient phone number
+
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Paths to helper Python scripts
 PY_HSV_SCRIPT="${SCRIPT_DIR}/helper_scripts/ocr_color_extract.py"  # For HSV color processing
-PY_SMS_SCRIPT="${SCRIPT_DIR}/helper_scripts/send_sms_twilio.py"    # For sending SMS
+# Use the official Vonage helper
+PY_SMS_SCRIPT="${SCRIPT_DIR}/helper_scripts/send_sms_vonage.py"    # For sending SMS
 
 # Path to EasyOCR helper script
 PY_EASYOCR_SCRIPT="${SCRIPT_DIR}/helper_scripts/easyocr_ocr.py"
@@ -177,21 +184,21 @@ if [ ${#FOUND_TERMS[@]} -gt 0 ]; then
     } >> "$LOG_FILE"
 
     # Build SMS message (keeping it concise due to SMS character limits)
-    SMS_BODY="OCR Alert: found [$FOUND_LIST] - methods: $SUCCESSFUL_LIST. Image: $SCREENSHOT_FILE"
+    SMS_BODY="Moomoo Alert: found [$FOUND_LIST]"
 
     # Escape quotes in SMS message to prevent command injection
     ESCAPED_BODY=$(printf '%s' "$SMS_BODY" | sed 's/"/\\"/g')
     
-    # Send SMS via Twilio using Python helper script
-    python3 "$PY_SMS_SCRIPT" "$TWILIO_ACCOUNT_SID" "$TWILIO_AUTH_TOKEN" "$TWILIO_FROM" "$TWILIO_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
-        echo "$(date): ERROR - Failed to send SMS via Twilio" >> "$LOG_FILE"
+    # Send SMS via Vonage using Python helper script
+    python3 "$PY_SMS_SCRIPT" "$VONAGE_API_KEY" "$VONAGE_API_SECRET" "$VONAGE_FROM" "$VONAGE_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
+        echo "$(date): ERROR - Failed to send SMS via Vonage" >> "$LOG_FILE"
     }
 
     # Display a macOS notification
     osascript -e "display notification \"Found Chinese characters: $FOUND_LIST\" with title \"OCR Alert - SMS Sent\""
 
     # Log SMS attempt
-    echo "$(date): SMS attempted to $TWILIO_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
+    echo "$(date): SMS attempted to $VONAGE_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
 else
     # Log that no matches were found
     echo "$(date): No target Chinese characters found in $SCREENSHOT_FILE (dark background processing)" >> "$LOG_FILE"
