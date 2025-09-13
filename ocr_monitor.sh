@@ -11,19 +11,53 @@
 #
 # Modified OCR monitor that sends SMS via Twilio (instead of email) when terms are found.
 #
+# Usage: ./ocr_monitor.sh [interval_minutes]
+#   interval_minutes: Optional. How often to run the OCR check (in minutes)
+#
 
 # Exit immediately if a command fails, treat unset variables as errors,
 # and don't hide errors in pipelines
 set -euo pipefail
+
+# Function to display usage information
+show_usage() {
+    echo "Usage: $(basename "$0") [interval_minutes]"
+    echo "  interval_minutes: Optional. How often to run the OCR check (in minutes)"
+    echo "  If interval is not specified, the script will run once and exit."
+}
+
+# Function to handle script termination
+cleanup() {
+    echo "Stopping OCR monitor..."
+    exit 0
+}
+
+# Set up trap to handle Ctrl+C gracefully
+trap cleanup SIGINT SIGTERM
+
+# Check if interval parameter was provided
+INTERVAL_MINUTES=""
+if [ $# -gt 0 ]; then
+    # Validate that the input is a positive number
+    if [[ $1 =~ ^[0-9]+$ ]] && [ "$1" -gt 0 ]; then
+        INTERVAL_MINUTES="$1"
+        INTERVAL_SECONDS=$((INTERVAL_MINUTES * 60))
+        echo "OCR monitor will run every $INTERVAL_MINUTES minute(s). Press Ctrl+C to stop."
+    else
+        echo "Error: Interval must be a positive number."
+        show_usage
+        exit 1
+    fi
+fi
 
 # ---------------------
 # Configuration
 # ---------------------
 # Screen coordinates for capturing a specific area of the screen
 CROP_X=1150          # X position (from left) to start capture
-CROP_Y=640         # Y position (from top) to start capture 
-CROP_WIDTH=250     # Width of capture area in pixels
-CROP_HEIGHT=160     # Height of capture area in pixels
+CROP_Y=620         # Y position (from top) to start capture 
+CROP_WIDTH=270     # Width of capture area in pixels
+CROP_HEIGHT=190     # Height of capture area in pixels
 
 # Chinese terms to search for in the OCR results
 SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
@@ -86,19 +120,6 @@ fi
 # Create screenshots directory if it doesn't exist
 mkdir -p "$SCREENSHOT_DIR"
 
-# Create a timestamp for the current screenshot
-TIMESTAMP=$(date "+%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
-SCREENSHOT_FILE="$SCREENSHOT_DIR/crop_${TIMESTAMP}.png"
-
-# Take a screenshot of the specified screen region using macOS screencapture
-/usr/sbin/screencapture -x -R${CROP_X},${CROP_Y},${CROP_WIDTH},${CROP_HEIGHT} "$SCREENSHOT_FILE"
-
-# Check if screenshot was successful
-if [ ! -f "$SCREENSHOT_FILE" ]; then
-    echo "$(date): ERROR - Screenshot failed" >> "$LOG_FILE"
-    exit 1
-fi
-
 # Function to preprocess the screenshot with different methods
 # to improve OCR accuracy for text on dark backgrounds
 preprocess_colored_on_black() {
@@ -133,75 +154,106 @@ preprocess_colored_on_black() {
     echo "$red_enhanced $green_enhanced $hsv_enhanced $luma_enhanced"
 }
 
-# Call preprocessing function and store the space-separated file list into array
-IFS=' ' read -r -a PROCESSED_FILES <<< "$(preprocess_colored_on_black "$SCREENSHOT_FILE")"
+# Function containing the main OCR monitoring logic
+run_ocr_monitor() {
+    # Create a timestamp for the current screenshot
+    local TIMESTAMP=$(date "+%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+    local SCREENSHOT_FILE="$SCREENSHOT_DIR/crop_${TIMESTAMP}.png"
 
-# Variables to collect OCR results
-ALL_OCR_TEXT=""           # Will store all OCR text from all methods
-FOUND_TERMS=()            # Will store unique matched terms - initialize empty array
-SUCCESSFUL_METHODS=()     # Will store which preprocessing methods found which terms
+    # Take a screenshot of the specified screen region using macOS screencapture
+    /usr/sbin/screencapture -x -R${CROP_X},${CROP_Y},${CROP_WIDTH},${CROP_HEIGHT} "$SCREENSHOT_FILE"
 
-# Run OCR on each processed image
-for processed_file in "${PROCESSED_FILES[@]}"; do
-    if [ -f "$processed_file" ]; then
-        # Run EasyOCR via Python helper script
-        OCR_TEXT=$(python3 "$PY_EASYOCR_SCRIPT" "$processed_file" 2>/dev/null || true)
-        
-        # Extract method name from filename for logging
-        method_name=$(basename "$processed_file" | sed 's/.*_\([^_]*_[^.]*\)\.png/\1/')
-        ALL_OCR_TEXT="$ALL_OCR_TEXT\n--- Method: $method_name ---\n$OCR_TEXT"
-
-        # Check each search term against OCR text
-        method_found_terms=()
-        for term in "${SEARCH_TERMS[@]}"; do
-            if echo "$OCR_TEXT" | grep -q "$term"; then
-                method_found_terms+=("$term")  # This method found this term
-                if [ ${#FOUND_TERMS[@]} -eq 0 ] || [[ ! " ${FOUND_TERMS[*]} " =~ " ${term} " ]]; then
-                    FOUND_TERMS+=("$term")
-                fi
-            fi
-        done
-
-        if [ ${#method_found_terms[@]} -gt 0 ]; then
-            SUCCESSFUL_METHODS+=("$method_name: ${method_found_terms[*]}")
-        fi
+    # Check if screenshot was successful
+    if [ ! -f "$SCREENSHOT_FILE" ]; then
+        echo "$(date): ERROR - Screenshot failed" >> "$LOG_FILE"
+        return 1
     fi
-done
 
-# If any target terms were found
-if [ ${#FOUND_TERMS[@]} -gt 0 ]; then
-    # Create comma-separated list of found terms
-    FOUND_LIST=$(IFS=', '; echo "${FOUND_TERMS[*]}")
-    # Create semicolon-separated list of successful methods and what they found
-    SUCCESSFUL_LIST=$(IFS='; '; echo "${SUCCESSFUL_METHODS[*]}")
+    # Call preprocessing function and store the space-separated file list into array
+    IFS=' ' read -r -a PROCESSED_FILES <<< "$(preprocess_colored_on_black "$SCREENSHOT_FILE")"
 
-    # Log the findings
-    {
-        echo "$(date): FOUND Chinese characters: $FOUND_LIST in screenshot $SCREENSHOT_FILE"
-        echo "Successful methods: $SUCCESSFUL_LIST"
-        echo -e "All OCR Text: $ALL_OCR_TEXT"
-        echo "---"
-    } >> "$LOG_FILE"
+    # Variables to collect OCR results
+    local ALL_OCR_TEXT=""           # Will store all OCR text from all methods
+    local FOUND_TERMS=()            # Will store unique matched terms - initialize empty array
+    local SUCCESSFUL_METHODS=()     # Will store which preprocessing methods found which terms
 
-    # Build SMS message (keeping it concise due to SMS character limits)
-    SMS_BODY="Moomoo Alert: found [$FOUND_LIST]"
+    # Run OCR on each processed image
+    for processed_file in "${PROCESSED_FILES[@]}"; do
+        if [ -f "$processed_file" ]; then
+            # Run EasyOCR via Python helper script
+            local OCR_TEXT=$(python3 "$PY_EASYOCR_SCRIPT" "$processed_file" 2>/dev/null || true)
+            
+            # Extract method name from filename for logging
+            local method_name=$(basename "$processed_file" | sed 's/.*_\([^_]*_[^.]*\)\.png/\1/')
+            ALL_OCR_TEXT="$ALL_OCR_TEXT\n--- Method: $method_name ---\n$OCR_TEXT"
 
-    # Escape quotes in SMS message to prevent command injection
-    ESCAPED_BODY=$(printf '%s' "$SMS_BODY" | sed 's/"/\\"/g')
-    
-    # Send SMS via Vonage using Python helper script
-    python3 "$PY_SMS_SCRIPT" "$VONAGE_API_KEY" "$VONAGE_API_SECRET" "$VONAGE_FROM" "$VONAGE_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
-        echo "$(date): ERROR - Failed to send SMS via Vonage" >> "$LOG_FILE"
-    }
+            # Check each search term against OCR text
+            local method_found_terms=()
+            for term in "${SEARCH_TERMS[@]}"; do
+                if echo "$OCR_TEXT" | grep -q "$term"; then
+                    method_found_terms+=("$term")  # This method found this term
+                    if [ ${#FOUND_TERMS[@]} -eq 0 ] || [[ ! " ${FOUND_TERMS[*]} " =~ " ${term} " ]]; then
+                        FOUND_TERMS+=("$term")
+                    fi
+                fi
+            done
 
-    # Display a macOS notification
-    osascript -e "display notification \"Found Chinese characters: $FOUND_LIST\" with title \"OCR Alert - SMS Sent\""
+            if [ ${#method_found_terms[@]} -gt 0 ]; then
+                SUCCESSFUL_METHODS+=("$method_name: ${method_found_terms[*]}")
+            fi
+        fi
+    done
 
-    # Log SMS attempt
-    echo "$(date): SMS attempted to $VONAGE_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
+    # If any target terms were found
+    if [ ${#FOUND_TERMS[@]} -gt 0 ]; then
+        # Create comma-separated list of found terms
+        local FOUND_LIST=$(IFS=', '; echo "${FOUND_TERMS[*]}")
+        # Create semicolon-separated list of successful methods and what they found
+        local SUCCESSFUL_LIST=$(IFS='; '; echo "${SUCCESSFUL_METHODS[*]}")
+
+        # Log the findings
+        {
+            echo "$(date): FOUND Chinese characters: $FOUND_LIST in screenshot $SCREENSHOT_FILE"
+            echo "Successful methods: $SUCCESSFUL_LIST"
+            echo -e "All OCR Text: $ALL_OCR_TEXT"
+            echo "---"
+        } >> "$LOG_FILE"
+
+        # Build SMS message (keeping it concise due to SMS character limits)
+        local SMS_BODY="Moomoo Alert: found [$FOUND_LIST]"
+
+        # Escape quotes in SMS message to prevent command injection
+        local ESCAPED_BODY=$(printf '%s' "$SMS_BODY" | sed 's/"/\\"/g')
+        
+        # Send SMS via Vonage using Python helper script
+        python3 "$PY_SMS_SCRIPT" "$VONAGE_API_KEY" "$VONAGE_API_SECRET" "$VONAGE_FROM" "$VONAGE_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
+            echo "$(date): ERROR - Failed to send SMS via Vonage" >> "$LOG_FILE"
+        }
+
+        # Display a macOS notification
+        osascript -e "display notification \"Found Chinese characters: $FOUND_LIST\" with title \"OCR Alert - SMS Sent\""
+
+        # Log SMS attempt
+        echo "$(date): SMS attempted to $VONAGE_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
+    else
+        # Log that no matches were found
+        echo "$(date): No target Chinese characters found in $SCREENSHOT_FILE (dark background processing)" >> "$LOG_FILE"
+        echo -e "All OCR Text: $ALL_OCR_TEXT" >> "$LOG_FILE"
+        echo "---" >> "$LOG_FILE"
+    fi
+}
+
+# Main execution logic
+if [ -z "$INTERVAL_MINUTES" ]; then
+    # Run once if no interval was specified
+    echo "Running OCR monitor once..."
+    run_ocr_monitor
 else
-    # Log that no matches were found
-    echo "$(date): No target Chinese characters found in $SCREENSHOT_FILE (dark background processing)" >> "$LOG_FILE"
-    echo -e "All OCR Text: $ALL_OCR_TEXT" >> "$LOG_FILE"
-    echo "---" >> "$LOG_FILE"
+    # Run continuously with the specified interval
+    while true; do
+        echo "$(date): Running OCR check..."
+        run_ocr_monitor
+        echo "Next check in $INTERVAL_MINUTES minute(s). Press Ctrl+C to stop."
+        sleep "$INTERVAL_SECONDS"
+    done
 fi
