@@ -8,7 +8,7 @@ This project monitors a specific region of your screen for Chinese trading signa
 - Sends SMS alerts via Vonage
 - Displays macOS notifications
 - Maintains detailed logs of detected terms and OCR results
-- Saves processed images and original screenshots, as well as the log file `ocr_log.txt`, in the `screenshots` folder
+- Saves processed images and the original screenshot, as well as the log file `ocr_log.txt`, in the `screenshots` folder
 
 ## Prerequisites
 - macOS (uses macOS-specific screenshot commands)
@@ -43,6 +43,7 @@ uv venv .venv
 # Activate the virtual environment
 # On macOS/Linux:
 source .venv/bin/activate
+
 # On Windows:
 # .venv\Scripts\activate
 ```
@@ -66,16 +67,28 @@ VONAGE_TO="+1YYYYYYYYYY"
 ### Screen Coordinates
 By default, the script monitors a 270×190 pixel area starting at coordinates (1150, 620). To customize this for your screen:
 ```
-CROP_X=1150          # X position (from left)
-CROP_Y=620           # Y position (from top)CROP_WIDTH=270       # Width of capture area in pixels
-CROP_HEIGHT=190      # Height of capture area in pixels
+CROP_X=1150          # X position (from left)
+CROP_Y=620           # Y position (from top)CROP_WIDTH=270       # Width of capture area in pixels
+CROP_HEIGHT=190      # Height of capture area in pixels
 ```
 
 ### Search Terms
 The default Chinese terms being monitored are "抄底" (bottom fishing/buy the dip) and "卖出" (sell). You can modify these in `ocr_monitor.sh`:
 ```
-SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
+SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
 ```
+
+### macOS Notifications Setup
+To ensure macOS notifications work properly:
+
+1. Open Script Editor (located in `/Applications/Utilities/`)
+2. Paste this code:
+```applescript
+display notification "Test notification" with title "Test"
+```
+3. Run the script by clicking the "Run" button in Script Editor
+4. Allow notifications in the prompt that appears in the upper-right corner of the screen
+5. Check System Preferences → Notifications to verify "Script Editor" appears and is allowed
 
 ### Usage
 1. Run Once
@@ -93,14 +106,14 @@ Press `Ctrl+C` to stop monitoring.
 ## How It Works
 1. The script takes a screenshot of the specified region
 2. It applies multiple preprocessing techniques to enhance text visibility:
-- Red channel enhancement
-- Green channel enhancement
-- HSV-based color extraction (specialized for colored text on dark backgrounds)
-- Luma (brightness) enhancement
+   - Red channel enhancement
+   - Green channel enhancement
+   - HSV-based color extraction (specialized for colored text on dark backgrounds)
+   - Luma (brightness) enhancement
 3. Each processed image is analyzed with `EasyOCR`
 4. If target Chinese terms are found, an SMS alert is sent and a macOS notification is displayed
 5. All activities are logged to `ocr_log.txt`
-6. Original screenshots and processed images, as well as the log file `ocr_log.txt`, are saved in the `screenshots` folder for reference and debugging
+6. The original screenshot and processed images, as well as the log file `ocr_log.txt`, are saved in the `screenshots` folder for reference and debugging
 
 ## Troubleshooting
 - Check `ocr_log.txt` for detailed information about each OCR attempt

@@ -161,3 +161,48 @@ All OCR Text:
 Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'key'
 Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'api_key'
 Sat Sep 13 14:38:18 CDT 2025: SMS attempted to +15122841471 for terms: 卖出
+Sat Sep 13 16:09:03 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250913_160847.png
+Successful methods: hsv_enhanced: 抄底
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+抄底
+--- Method: luma_enhanced ---
+
+---
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'key'
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'api_key'
+Sat Sep 13 16:09:04 CDT 2025: SMS attempted to +15122841471 for terms: 抄底
+Sat Sep 13 16:11:18 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250913_161104.png
+Successful methods: hsv_enhanced: 抄底
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+抄底
+--- Method: luma_enhanced ---
+
+---
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'key'
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'api_key'
+Sat Sep 13 16:11:19 CDT 2025: SMS attempted to +15122841471 for terms: 抄底
+Sat Sep 13 16:13:33 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250913_161319.png
+Successful methods: hsv_enhanced: 抄底
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+抄底
+--- Method: luma_enhanced ---
+
+---
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'key'
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'api_key'
+Sat Sep 13 16:13:33 CDT 2025: SMS attempted to +15122841471 for terms: 抄底
