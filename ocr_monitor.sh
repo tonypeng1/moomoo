@@ -9,7 +9,7 @@
 # Modified to call external Python script for HSV-based processing:
 #   ./ocr_color_extract.py <input.png> <output_hsv.png>
 #
-# Modified OCR monitor that sends SMS via Twilio (instead of email) when terms are found.
+# Modified OCR monitor that sends SMS via Vonage when terms are found.
 #
 # Usage: ./ocr_monitor.sh [interval_minutes]
 #   interval_minutes: Optional. How often to run the OCR check (in minutes)
@@ -66,13 +66,6 @@ SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
 # Directories and files for storing screenshots and logs
 SCREENSHOT_DIR="/Users/tony3/Documents/moomoo/screenshots"
 LOG_FILE="/Users/tony3/Documents/moomoo/screenshots/ocr_log.txt"
-
-# # Twilio API credentials and phone numbers for SMS messaging
-# # (these are placeholders - real values need to be provided)
-# TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-# TWILIO_AUTH_TOKEN="your_auth_token_here"
-# TWILIO_FROM="+1XXXXXXXXXX"  # your Twilio phone number
-# TWILIO_TO="+1YYYYYYYYYY"    # recipient phone number
 
 # Vonage (Nexmo) API credentials and numbers
 # VONAGE_API_KEY="your_api_key_here"

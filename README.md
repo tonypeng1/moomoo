@@ -5,7 +5,7 @@ This project monitors a specific region of your screen for Chinese trading signa
 - Takes periodic screenshots of a configurable screen region
 - Processes images with multiple techniques to optimize for colored text on dark backgrounds
 - Uses EasyOCR for Chinese/English text recognition
-- Sends SMS alerts via Vonage (or optionally Twilio)
+- Sends SMS alerts via Vonage
 - Displays macOS notifications
 - Maintains detailed logs of detected terms and OCR results
 
@@ -13,7 +13,7 @@ This project monitors a specific region of your screen for Chinese trading signa
 - macOS (uses macOS-specific screenshot commands)
 - Python 3.13+
 - `ImageMagick` (for image preprocessing)
-- Vonage or Twilio account for SMS capabilities
+- Vonage account for SMS capabilities
 
 ## Installation
 1. Clone the repository
@@ -33,7 +33,20 @@ Then install the project dependencies:
 uv pip install -e .
 ```
 
-3. Make scripts executable
+3. Create and activate a virtual environment
+
+```bash
+# Create a virtual environment in a hidden folder named '.venv'
+uv venv .venv
+
+# Activate the virtual environment
+# On macOS/Linux:
+source .venv/bin/activate
+# On Windows:
+# .venv\Scripts\activate
+```
+
+4. Make scripts executable
 ```
 chmod +x ocr_monitor.sh
 chmod +x helper_scripts/*.py
@@ -41,25 +54,20 @@ chmod +x helper_scripts/*.py
 
 ## Configuration
 ### API Keys
-Create a `.env` file in the project root directory with your Vonage (or Twilio) credentials:
+Create a `.env` file in the project root directory with your Vonage credentials:
 ```
-# For VonageVONAGE_API_KEY="your_api_key_here"VONAGE_API_SECRET="your_api_secret_here"VONAGE_FROM="YourSender"VONAGE_TO="+1YYYYYYYYYY"# For Twilio (optional alternative)# TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"# TWILIO_AUTH_TOKEN="your_auth_token_here"# TWILIO_FROM="+1XXXXXXXXXX"# TWILIO_TO="+1YYYYYYYYYY"
+VONAGE_API_KEY="your_api_key_here"
+VONAGE_API_SECRET="your_api_secret_here"
+VONAGE_FROM="YourSender"
+VONAGE_TO="+1YYYYYYYYYY"
 ```
 
 ### Screen Coordinates
 By default, the script monitors a 270×190 pixel area starting at coordinates (1150, 620). To customize this for your screen:
-
-1. Run the coordinate helper script:
 ```
-python3 helper_scripts/get_crop_coords.py /path/to/some_screenshot.png
-```
-
-2. Click on the top-left and bottom-right corners of the area you want to monitor
-
-3. Update the coordinates in `ocr_monitor.sh`:
-
-```
-CROP_X=1150          # X position (from left) to start captureCROP_Y=620           # Y position (from top) to start capture CROP_WIDTH=270       # Width of capture area in pixelsCROP_HEIGHT=190      # Height of capture area in pixels
+CROP_X=1150          # X position (from left)
+CROP_Y=620           # Y position (from top)CROP_WIDTH=270       # Width of capture area in pixels
+CROP_HEIGHT=190      # Height of capture area in pixels
 ```
 
 ### Search Terms
@@ -88,14 +96,14 @@ Press `Ctrl+C` to stop monitoring.
 - Green channel enhancement
 - HSV-based color extraction (specialized for colored text on dark backgrounds)
 - Luma (brightness) enhancement
-3. Each processed image is analyzed with EasyOCR
+3. Each processed image is analyzed with `EasyOCR`
 4. If target Chinese terms are found, an SMS alert is sent and a macOS notification is displayed
-5. All activities are logged to ocr_log.txt
+5. All activities are logged to `ocr_log.txt`
 
 ## Troubleshooting
 - Check `ocr_log.txt` for detailed information about each OCR attempt
 - Ensure the screen coordinates are correctly set for your display
-- Verify your Vonage/Twilio credentials in the `.env` file
+- Verify your Vonage credentials in the `.env` file
 - Make sure `ImageMagick` is properly installed and in your PATH
 
 ## License
