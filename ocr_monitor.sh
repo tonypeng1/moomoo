@@ -69,6 +69,13 @@ if [ ! -f "$PY_EASYOCR_SCRIPT" ]; then
     exit 1
 fi
 
+# Load environment variables from .env file if it exists
+if [ -f "${SCRIPT_DIR}/.env" ]; then
+    set -a
+    source "${SCRIPT_DIR}/.env"
+    set +a
+fi
+
 # Create screenshots directory if it doesn't exist
 mkdir -p "$SCREENSHOT_DIR"
 
@@ -169,22 +176,22 @@ if [ ${#FOUND_TERMS[@]} -gt 0 ]; then
         echo "---"
     } >> "$LOG_FILE"
 
-    # # Build SMS message (keeping it concise due to SMS character limits)
-    # SMS_BODY="OCR Alert: found [$FOUND_LIST] - methods: $SUCCESSFUL_LIST. Image: $SCREENSHOT_FILE"
+    # Build SMS message (keeping it concise due to SMS character limits)
+    SMS_BODY="OCR Alert: found [$FOUND_LIST] - methods: $SUCCESSFUL_LIST. Image: $SCREENSHOT_FILE"
 
-    # # Escape quotes in SMS message to prevent command injection
-    # ESCAPED_BODY=$(printf '%s' "$SMS_BODY" | sed 's/"/\\"/g')
+    # Escape quotes in SMS message to prevent command injection
+    ESCAPED_BODY=$(printf '%s' "$SMS_BODY" | sed 's/"/\\"/g')
     
-    # # Send SMS via Twilio using Python helper script
-    # python3 "$PY_SMS_SCRIPT" "$TWILIO_ACCOUNT_SID" "$TWILIO_AUTH_TOKEN" "$TWILIO_FROM" "$TWILIO_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
-    #     echo "$(date): ERROR - Failed to send SMS via Twilio" >> "$LOG_FILE"
-    # }
+    # Send SMS via Twilio using Python helper script
+    python3 "$PY_SMS_SCRIPT" "$TWILIO_ACCOUNT_SID" "$TWILIO_AUTH_TOKEN" "$TWILIO_FROM" "$TWILIO_TO" "$ESCAPED_BODY" >/dev/null 2>>"$LOG_FILE" || {
+        echo "$(date): ERROR - Failed to send SMS via Twilio" >> "$LOG_FILE"
+    }
 
-    # # Display a macOS notification
-    # osascript -e "display notification \"Found Chinese characters: $FOUND_LIST\" with title \"OCR Alert - SMS Sent\""
+    # Display a macOS notification
+    osascript -e "display notification \"Found Chinese characters: $FOUND_LIST\" with title \"OCR Alert - SMS Sent\""
 
-    # # Log SMS attempt
-    # echo "$(date): SMS attempted to $TWILIO_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
+    # Log SMS attempt
+    echo "$(date): SMS attempted to $TWILIO_TO for terms: $FOUND_LIST" >> "$LOG_FILE"
 else
     # Log that no matches were found
     echo "$(date): No target Chinese characters found in $SCREENSHOT_FILE (dark background processing)" >> "$LOG_FILE"

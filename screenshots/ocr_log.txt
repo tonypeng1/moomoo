@@ -87,3 +87,101 @@ UNE14:
 --- Method: luma_enhanced ---
 
 ---
+Mon Sep  8 20:42:30 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250908_204217.png
+Successful methods: hsv_enhanced: 抄底
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+抄底
+12:
+UNE13:
+UNE14:
+--- Method: luma_enhanced ---
+
+---
+Mon Sep  8 20:43:31 CDT 2025: FOUND Chinese characters: 卖出 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250908_204318.png
+Successful methods: hsv_enhanced: 卖出
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+卖出
+12:
+UNE13:
+LINE14:
+--- Method: luma_enhanced ---
+
+---
+Tue Sep  9 20:21:28 CDT 2025: FOUND Chinese characters: 卖出 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250909_202112.png
+Successful methods: hsv_enhanced: 卖出
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+卖出
+12:
+UNE13:
+LNE14:
+--- Method: luma_enhanced ---
+
+---
+Twilio API error: HTTP 400 - {"code":21608,"message":"The number +1512284XXXX is unverified. Trial accounts cannot send messages to unverified numbers; verify +1512284XXXX at twilio.com/user/account/phone-numbers/verified, or purchase a Twilio number to send messages to unverified numbers","more_info":"https://www.twilio.com/docs/errors/21608","status":400}
+Tue Sep  9 20:21:28 CDT 2025: ERROR - Failed to send SMS via Twilio
+Tue Sep  9 20:21:28 CDT 2025: SMS attempted to +15122841508 for terms: 卖出
+Tue Sep  9 20:25:51 CDT 2025: FOUND Chinese characters: 卖出 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250909_202538.png
+Successful methods: hsv_enhanced: 卖出
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+卖出
+12:
+UNE13:
+LNE14:
+--- Method: luma_enhanced ---
+
+---
+Tue Sep  9 20:25:52 CDT 2025: SMS attempted to +15122841508 for terms: 卖出
+Tue Sep  9 20:30:55 CDT 2025: FOUND Chinese characters: 卖出 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250909_203042.png
+Successful methods: hsv_enhanced: 卖出
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+卖出
+12:
+UNE13:
+LNE14:
+--- Method: luma_enhanced ---
+
+---
+Tue Sep  9 20:30:55 CDT 2025: SMS attempted to +15122841508 for terms: 卖出
+Tue Sep  9 20:35:53 CDT 2025: FOUND Chinese characters: 卖出 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250909_203539.png
+Successful methods: hsv_enhanced: 卖出
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+卖出
+12:
+UNE13:
+LNE14:
+--- Method: luma_enhanced ---
+
+---
+Twilio API error: HTTP 400 - {"code":21659,"message":"'From' +15122841471 is not a Twilio phone number or Short Code country mismatch","more_info":"https://www.twilio.com/docs/errors/21659","status":400}
+Tue Sep  9 20:35:53 CDT 2025: ERROR - Failed to send SMS via Twilio
+Tue Sep  9 20:35:53 CDT 2025: SMS attempted to +15122841508 for terms: 卖出
