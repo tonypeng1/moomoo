@@ -14,7 +14,7 @@ This project monitors a specific region of your screen for Chinese trading signa
 - macOS (uses macOS-specific screenshot commands)
 - Python 3.13+
 - `ImageMagick` (for image preprocessing)
-- Vonage account for SMS capabilities
+- Vonage account for SMS capabilities (a free trial account is sufficient)  
 
 ## Installation
 1. Clone the repository
@@ -80,7 +80,7 @@ SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
 ```
 
 ### macOS Notifications Setup
-To ensure macOS notifications work properly:
+If macOS notification is not shown, try:
 
 1. Open Script Editor (located in `/Applications/Utilities/`)
 2. Paste this code:
@@ -88,7 +88,7 @@ To ensure macOS notifications work properly:
 display notification "Test notification" with title "Test"
 ```
 3. Run the script by clicking the "Run" button in Script Editor
-4. Allow notifications in the prompt that appears in the upper-right corner of the screen
+4. Click `Options` in the notification that appears in the upper-right corner of the screenand and select `Allow` 
 5. Check System Preferences → Notifications to verify "Script Editor" appears and is allowed
 
 ### Usage
@@ -100,7 +100,7 @@ display notification "Test notification" with title "Test"
 2. Run Continuously
 Specify an interval in minutes:
 ```
-./ocr_monitor.sh 1    # Check every 1 minute
+./ocr_monitor.sh 30    # Check every 30 minute
 ```
 Press `Ctrl+C` to stop monitoring.
 
