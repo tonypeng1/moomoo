@@ -8,6 +8,7 @@ This project monitors a specific region of your screen for Chinese trading signa
 - Sends SMS alerts via Vonage
 - Displays macOS notifications
 - Maintains detailed logs of detected terms and OCR results
+- Saves processed images and original screenshots, as well as the log file `ocr_log.txt`, in the `screenshots` folder
 
 ## Prerequisites
 - macOS (uses macOS-specific screenshot commands)
@@ -99,6 +100,7 @@ Press `Ctrl+C` to stop monitoring.
 3. Each processed image is analyzed with `EasyOCR`
 4. If target Chinese terms are found, an SMS alert is sent and a macOS notification is displayed
 5. All activities are logged to `ocr_log.txt`
+6. Original screenshots and processed images, as well as the log file `ocr_log.txt`, are saved in the `screenshots` folder for reference and debugging
 
 ## Troubleshooting
 - Check `ocr_log.txt` for detailed information about each OCR attempt
