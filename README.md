@@ -96,15 +96,12 @@ display notification "Test notification" with title "Test"
 ```
 sleep 5 && ./ocr_monitor.sh
 ```
-Open Moomoo trading app (full screen) in 5 seconds.
 
 2. Run Continuously
 Specify an interval in minutes:
 ```
-sleep 5 && ./ocr_monitor.sh 30    # Check every 30 minute
+./ocr_monitor.sh 30    # Check every 30 minute
 ```
-Open Moomoo trading app (full screen) in 5 seconds.
-
 Press `Ctrl+C` to stop monitoring.
 
 ## How It Works
