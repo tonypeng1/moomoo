@@ -1,0 +1,102 @@
+## Moomoo OCR Monitor
+This project monitors a specific region of your screen for Chinese trading signals (like "抄底" - bottom fishing/buy the dip, or "卖出" - sell) in the Moomoo trading app, and sends SMS alerts when these terms are detected.
+
+## Features
+- Takes periodic screenshots of a configurable screen region
+- Processes images with multiple techniques to optimize for colored text on dark backgrounds
+- Uses EasyOCR for Chinese/English text recognition
+- Sends SMS alerts via Vonage (or optionally Twilio)
+- Displays macOS notifications
+- Maintains detailed logs of detected terms and OCR results
+
+## Prerequisites
+- macOS (uses macOS-specific screenshot commands)
+- Python 3.13+
+- `ImageMagick` (for image preprocessing)
+- Vonage or Twilio account for SMS capabilities
+
+## Installation
+1. Clone the repository
+```
+git clone https://github.com/tonypeng1/moomoo.git
+cd moomoo
+```
+
+2. Install dependencies using uv
+`uv` is a fast Python package installer and resolver. If you don't have it installed:
+```
+curl -sSf https://astral.sh/uv/install.sh | bash
+```
+
+Then install the project dependencies:
+```
+uv pip install -e .
+```
+
+3. Make scripts executable
+```
+chmod +x ocr_monitor.sh
+chmod +x helper_scripts/*.py
+```
+
+## Configuration
+### API Keys
+Create a `.env` file in the project root directory with your Vonage (or Twilio) credentials:
+```
+# For VonageVONAGE_API_KEY="your_api_key_here"VONAGE_API_SECRET="your_api_secret_here"VONAGE_FROM="YourSender"VONAGE_TO="+1YYYYYYYYYY"# For Twilio (optional alternative)# TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"# TWILIO_AUTH_TOKEN="your_auth_token_here"# TWILIO_FROM="+1XXXXXXXXXX"# TWILIO_TO="+1YYYYYYYYYY"
+```
+
+### Screen Coordinates
+By default, the script monitors a 270×190 pixel area starting at coordinates (1150, 620). To customize this for your screen:
+
+1. Run the coordinate helper script:
+```
+python3 helper_scripts/get_crop_coords.py /path/to/some_screenshot.png
+```
+
+2. Click on the top-left and bottom-right corners of the area you want to monitor
+
+3. Update the coordinates in `ocr_monitor.sh`:
+
+```
+CROP_X=1150          # X position (from left) to start captureCROP_Y=620           # Y position (from top) to start capture CROP_WIDTH=270       # Width of capture area in pixelsCROP_HEIGHT=190      # Height of capture area in pixels
+```
+
+### Search Terms
+The default Chinese terms being monitored are "抄底" (bottom fishing/buy the dip) and "卖出" (sell). You can modify these in `ocr_monitor.sh`:
+```
+SEARCH_TERMS=("抄底" "卖出")  # Terms mean "bottom fishing" and "sell"
+```
+
+### Usage
+1. Run Once
+```
+./ocr_monitor.sh
+```
+
+2. Run Continuously
+Specify an interval in minutes:
+```
+./ocr_monitor.sh 1    # Check every 1 minute
+```
+Press `Ctrl+C` to stop monitoring.
+
+## How It Works
+1. The script takes a screenshot of the specified region
+2. It applies multiple preprocessing techniques to enhance text visibility:
+- Red channel enhancement
+- Green channel enhancement
+- HSV-based color extraction (specialized for colored text on dark backgrounds)
+- Luma (brightness) enhancement
+3. Each processed image is analyzed with EasyOCR
+4. If target Chinese terms are found, an SMS alert is sent and a macOS notification is displayed
+5. All activities are logged to ocr_log.txt
+
+## Troubleshooting
+- Check `ocr_log.txt` for detailed information about each OCR attempt
+- Ensure the screen coordinates are correctly set for your display
+- Verify your Vonage/Twilio credentials in the `.env` file
+- Make sure `ImageMagick` is properly installed and in your PATH
+
+## License
+MIT License
