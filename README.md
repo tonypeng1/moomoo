@@ -34,12 +34,7 @@ If your system doesn't have curl, you can use wget:
 wget -qO- https://astral.sh/uv/install.sh | sh
 ```
 
-Then install the project dependencies:
-```
-uv pip install -e .
-```
-
-3. Create and activate a virtual environment
+2. Create and activate a virtual environment
 
 ```bash
 # Create a virtual environment in a hidden folder named '.venv'
@@ -51,6 +46,11 @@ source .venv/bin/activate
 
 # On Windows:
 # .venv\Scripts\activate
+```
+
+3. Then install the project dependencies:
+```
+uv pip install -e .
 ```
 
 4. Make scripts executable
