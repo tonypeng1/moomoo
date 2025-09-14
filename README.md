@@ -26,7 +26,12 @@ cd moomoo
 2. Install dependencies using uv
 `uv` is a fast Python package installer and resolver. If you don't have it installed:
 ```
-curl -sSf https://astral.sh/uv/install.sh | bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+If your system doesn't have curl, you can use wget:
+```
+wget -qO- https://astral.sh/uv/install.sh | sh
 ```
 
 Then install the project dependencies:
@@ -65,13 +70,14 @@ VONAGE_TO="+1YYYYYYYYYY"
 ```
 
 ### Screen Coordinates
-By default, the script monitors a 270×190 pixel area starting at coordinates (1150, 620). To customize this for your screen:
+By default, the script monitors a 270×190 pixel area starting at coordinates (1150, 620). To customize this for your screen, change the following values.
 ```
 CROP_X=1150          # X position (from left)
 CROP_Y=620           # Y position (from top)
 CROP_WIDTH=270       # Width of capture area in pixels
 CROP_HEIGHT=190      # Height of capture area in pixels
 ```
+![The current crop area is in the lower right corner of the screen](images/IMG_7705_copy.png "Moomoo app full screen")
 
 ### Search Terms
 The default Chinese terms being monitored are "抄底" (bottom fishing/buy the dip) and "卖出" (sell). You can modify these in `ocr_monitor.sh`:
