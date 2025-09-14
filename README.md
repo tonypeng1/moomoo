@@ -77,7 +77,8 @@ CROP_Y=620           # Y position (from top)
 CROP_WIDTH=270       # Width of capture area in pixels
 CROP_HEIGHT=190      # Height of capture area in pixels
 ```
-![The current crop area is in the lower right corner of the screen](images/IMG_7705_copy.png "Moomoo app full screen")
+Current default monitor area is shown in the image below at the lower-right corner when the Moomoo app is displayed full screen.
+![](images/IMG_7705_copy.png "Moomoo app full screen")
 
 ### Search Terms
 The default Chinese terms being monitored are "抄底" (bottom fishing/buy the dip) and "卖出" (sell). You can modify these in `ocr_monitor.sh`:
