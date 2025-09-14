@@ -78,6 +78,7 @@ CROP_WIDTH=270       # Width of capture area in pixels
 CROP_HEIGHT=190      # Height of capture area in pixels
 ```
 Current default monitor area is shown in the image below at the lower-right corner when the Moomoo app is displayed full screen.
+
 ![](images/IMG_7705_copy.png "Moomoo app full screen")
 
 ### Search Terms
