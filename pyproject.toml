@@ -12,3 +12,8 @@ dependencies = [
     "requests>=2.32.5",
     "vonage>=4.6.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["helper_scripts*"]
+exclude = ["images*", "screenshots*"]

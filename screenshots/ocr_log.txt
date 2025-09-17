@@ -222,3 +222,19 @@ All OCR Text:
 Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'key'
 Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'api_key'
 Sat Sep 13 19:48:29 CDT 2025: SMS attempted to +15122841471 for terms: 抄底
+Sun Sep 14 14:42:15 CDT 2025: FOUND Chinese characters: 抄底 in screenshot /Users/tony3/Documents/moomoo/screenshots/crop_20250914_144200.png
+Successful methods: hsv_enhanced: 抄底
+All OCR Text: 
+--- Method: red_enhanced ---
+
+--- Method: green_enhanced ---
+
+--- Method: hsv_enhanced ---
+抄底
+抄底
+--- Method: luma_enhanced ---
+
+---
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'key'
+Vonage() failed: Vonage.__init__() got an unexpected keyword argument 'api_key'
+Sun Sep 14 14:42:16 CDT 2025: SMS attempted to +15122841471 for terms: 抄底

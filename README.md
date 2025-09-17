@@ -12,9 +12,21 @@ This project monitors a specific region of your screen for Chinese trading signa
 
 ## Prerequisites
 - macOS (uses macOS-specific screenshot commands)
-- Python 3.13+
+- Apple M4 Pro chip
+- Python 3.13+  
 - `ImageMagick` (for image preprocessing)
-- Vonage account for SMS capabilities (a free trial account is sufficient)  
+- Vonage account for SMS capabilities (a free trial account is sufficient) 
+
+If Intel Core, 
+- Change pyproject.toml to `requires-python = ">=3.12"`
+- Create a vertual environment with Python 3.12
+```
+uv venv -p python3.12 .venv
+```
+- Downgrade numpy to <2 if required
+```
+uv pip install --upgrade "numpy<2"
+```
 
 ## Installation
 1. Clone the repository
@@ -34,7 +46,7 @@ If your system doesn't have curl, you can use wget:
 wget -qO- https://astral.sh/uv/install.sh | sh
 ```
 
-2. Create and activate a virtual environment
+3. Create and activate a virtual environment
 
 ```bash
 # Create a virtual environment in a hidden folder named '.venv'
@@ -48,15 +60,20 @@ source .venv/bin/activate
 # .venv\Scripts\activate
 ```
 
-3. Then install the project dependencies:
+4. Then install the project dependencies:
 ```
 uv pip install -e .
 ```
 
-4. Make scripts executable
+5. Make scripts executable
 ```
 chmod +x ocr_monitor.sh
 chmod +x helper_scripts/*.py
+```
+
+6. Install imagemagick if it has not been installed
+```
+ brew install imagemagick
 ```
 
 ## Configuration
@@ -77,7 +94,7 @@ CROP_Y=620           # Y position (from top)
 CROP_WIDTH=270       # Width of capture area in pixels
 CROP_HEIGHT=190      # Height of capture area in pixels
 ```
-Current default monitor area is shown in the image below at the lower-right corner when the Moomoo app is displayed full screen.
+Current approximate default monitor area is shown in the image below at the lower-right corner when the Moomoo app is displayed full screen. 
 
 ![](images/IMG_7705_copy.png "Moomoo app full screen")
 
